@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "454197807801",
+    "project_id": "petco-475118",
+    "storage_bucket": "petco-475118.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:454197807801:android:4059c5f3157d8284b0a968",
+        "android_client_info": {
+          "package_name": "com.petcompany.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "454197807801-vtnikc37haumr58otvmbh0g53m93p4iv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOf6JN5TTHDSVhHJqYqKkvsnJbyt8lUsw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "454197807801-tsb9stqqt8qp74i7cgbdgnniaio5ka2e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
