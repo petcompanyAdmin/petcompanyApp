@@ -33,7 +33,6 @@
     },
     "plugins": [
       "@react-native-google-signin/google-signin",
-      ["expo-firebase-core", { "skipAutolinking": true }]
     ],
     "extra": {
       "eas": {
