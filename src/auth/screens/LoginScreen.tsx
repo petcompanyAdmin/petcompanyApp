@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ImageBackground,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,13 +21,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { Colors, Spacing, Typography } from '../../theme';
 
-import * as Google from 'expo-auth-session/providers/google';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { auth } from '../../utils/firebaseConfig';
-import { Alert } from 'react-native';
-import { makeRedirectUri } from 'expo-auth-session';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
-WebBrowser.maybeCompleteAuthSession();
+import { GoogleAuthProvider, signInWithCredential, User } from 'firebase/auth';
+import { auth } from '../../utils/firebaseConfig';
+import { useAuthStore } from '../../store/useAuthStore';
+import { AuthService } from '../../services/authService';
 
 
 export default function LoginScreen() {
@@ -37,61 +37,53 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const { theme, toggleTheme, colors } = useTheme();
-  const webClientId = '454197807801-bnk53h9p6cq3tf8ngjpg0unr3t1ie794.apps.googleusercontent.com'
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: webClientId,
-    webClientId: webClientId,
-    redirectUri: 'https://auth.expo.io/@petcompany/petcompany-app',
-  });
+  const { setUser, saveTokens } = useAuthStore.getState();
 
-  // React.useEffect(() => {
-  //   if (response?.type === 'success') {
-  //     const { authentication } = response;
-  //     if (!authentication?.idToken) {
-  //       Alert.alert('Error', 'No ID token received from Google');
-  //       return;
-  //     }
-
-  //     const credential = GoogleAuthProvider.credential(authentication.idToken);
-  //     signInWithCredential(auth, credential)
-  //       .then((userCredential) => {
-  //         const user = userCredential.user;
-  //         console.log('✅ Google login success:', user.email);
-  //         Alert.alert('Welcome', `Signed in as ${user.displayName || user.email}`);
-  //       })
-  //       .catch((error) => {
-  //         console.error('❌ Firebase Google login error:', error);
-  //         Alert.alert('Login Failed', error.message);
-  //       });
-  //   }
-  // }, [response]);
-
-  React.useEffect(() => {
-    console.log('google', response)
-    if (response?.type === "success") {
-      const { idToken, accessToken } = response.authentication || {};
-      if (!idToken && !accessToken) {
-        Alert.alert("Error", "No token received from Google");
-        return;
+  const handleNativeGoogleSignIn = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const hasPlayServices = await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+        if (!hasPlayServices) {
+          Alert.alert('Error', 'Google Play Services not available or outdated.');
+          return;
+        }
       }
 
-      const credential = GoogleAuthProvider.credential(idToken, accessToken);
+      const response = await GoogleSignin.signIn();
 
-      signInWithCredential(auth, credential)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          console.log("✅ Google login success:", user.email);
-          Alert.alert("Welcome", `Signed in as ${user.displayName || user.email}`);
-        })
-        .catch((error) => {
-          console.error("❌ Firebase Google login error:", error);
-          Alert.alert("Login Failed", error.message);
-        });
+      // ✅ Extract token & user from the correct place
+      const idToken = response.data?.idToken;
+      const user: any = response.data?.user;
+
+      if (user && idToken) {
+        const googleCredential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, googleCredential);
+
+        setUser(user);
+        await saveTokens({ idToken });
+
+        // api call
+        const data = await AuthService.loginWithGoogle(idToken);
+        console.log('backend responded', data);
+        
+      } else {
+        // console.log('🚨 Full Google Sign-In response:', JSON.stringify(response, null, 2));
+        Alert.alert('Error', 'No ID Token found in response. Check console logs.');
+      }
+
+    } catch (error: any) {
+      console.error('❌ Native Google Sign-In Error:', JSON.stringify(error, null, 2));
+
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('User cancelled the login flow');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Google Play Services not available or too old.');
+      } else {
+        Alert.alert('Login Failed', error.message || 'Unexpected error — check logs');
+      }
     }
-  }, [response]);
-
-
+  };
 
 
   const validateEmail = (value: string) => {
@@ -269,8 +261,7 @@ export default function LoginScreen() {
               {/* Google Login */}
               <TouchableOpacity
                 style={[styles.googleBtn, { borderColor: colors.border }]}
-                onPress={() => promptAsync()} // 👈 replace handleGoogleLogin()
-                disabled={!request}
+                onPress={handleNativeGoogleSignIn}
               >
                 <Image
                   source={require('../../../assets/google.png')}

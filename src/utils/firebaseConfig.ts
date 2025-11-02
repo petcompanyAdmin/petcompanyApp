@@ -1,15 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { initializeAuth } from "firebase/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-let getReactNativePersistence: any;
-try {
-  // ✅ Dynamically import to avoid build-time resolution errors
-  ({ getReactNativePersistence } = require("firebase/auth/react-native"));
-} catch (e) {
-  console.warn("⚠️ Falling back: getReactNativePersistence not found, using memory persistence");
-  getReactNativePersistence = undefined;
-}
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9GySrzZRJwGYUUSQzSmPCCsFCFIuaqhs",
@@ -23,9 +13,4 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 
-// ✅ Initialize Auth safely
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence
-    ? getReactNativePersistence(AsyncStorage)
-    : undefined,
-});
+export const auth = getAuth(app);

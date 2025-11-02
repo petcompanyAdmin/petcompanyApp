@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Pet Company",
-    "slug": "petcompany",
+    "slug": "petcompany-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.petcompany.app"
+      "bundleIdentifier": "com.petcompany.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.petcompany.app",
@@ -29,14 +32,13 @@
       "favicon": "./assets/logo.png"
     },
     "plugins": [
+      "@react-native-google-signin/google-signin",
+      ["expo-firebase-core", { "skipAutolinking": true }]
     ],
     "extra": {
       "eas": {
-        "projectId": "38cee5b7-c473-4893-b916-62953875ff10"
+        "projectId": "d4f0e68b-8807-4890-b258-e30f9f9f6641"
       }
     }
   }
 }
-
-
-// 38cee5b7-c473-4893-b916-62953875ff10
